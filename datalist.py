@@ -56,7 +56,7 @@ class DataList(list):
                        name = "John")
         """
         try:
-            return self._find_generator(*checks, **attrs).__next__()
+            return self._extract(*checks, **attrs).__next__()
         except StopIteration:
             return self.default
 
@@ -78,9 +78,9 @@ class DataList(list):
             if element.key == val:
                 the element can be returned."""
 
-        return DataList([ele for ele in self._find_generator(*checks, **attrs)])
+        return DataList([ele for ele in self._extract(*checks, **attrs)])
 
-    def _find_generator(self, *checks, **attrs):
+    def _extract(self, *checks, **attrs):
         for element in self:
             for attr, value in attrs.items():
                 if getattr(element, attr) != value:
@@ -92,18 +92,6 @@ class DataList(list):
                 else:
                     yield element
 
-    def __getattr__(self, attrs: str) -> "DataList":
-        if not attrs.endswith("s"):
-            raise AttributeError
-        attr = attrs[:-1]
-        if not self:
-            return DataList([])
-        has_attr = map(lambda element: hasattr(element, attr), self[::])
-        if all(has_attr):
-            return DataList([getattr(ele, attr) for ele in self])
-        else:
-            AttributeError(f"Elements without the attribution: {attr} exist.")
-
     def set_default(self, val):
         """
         Parameters
@@ -112,3 +100,20 @@ class DataList(list):
             Default value. The is returned if none of elements match your conditions.
         """
         self.default = val
+
+    def __getattr__(self, attrs: str) -> "DataList":
+        if not attrs.endswith("s"):
+            raise AttributeError
+        attr = attrs[:-1]
+        if not self:
+            return DataList([])
+        return self.line_up(attr)
+
+    def line_up(self, attr: str):
+        has_attr = map(lambda element: hasattr(element, attr), self)
+        if all(has_attr):
+            return DataList([getattr(ele, attr) for ele in self])
+        else:
+            AttributeError(f"Elements without attribution: {attr} exist.")
+
+

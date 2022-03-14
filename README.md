@@ -1,6 +1,6 @@
 # datalist
 
-Gets element simply with conditions.
+Extracts element simply with conditions.
 
 ```python
 person_list(name="John")
@@ -78,7 +78,7 @@ All positional arguments must be callable which accepts element and return bool.
 
 
 
-###get_all
+### get_all
 get_all() returns list of all elements satisfying the conditions.
 
 ```python
@@ -89,7 +89,7 @@ persons = DataList([Person("Abigail", 35),
 persons_aged_35 = persons.get_all(age=35)  # [John, Abigail] has 2 Person instances
 ```
 
-###Values of an attribute
+### Values of an attribute
 If you want names of all persons:
 
 if traditional way:
@@ -102,7 +102,7 @@ If datalist:
 
 ```python
 names = persons.names
-# persons.list("name") also works
+# persons.line_up("name") also works
 ```
 
 DataList DOESN'T have "names" attribute, but all elements have "name" attribute.

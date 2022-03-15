@@ -1,9 +1,9 @@
-from typing import Callable
+from typing import Callable, Optional
 
 
 class DataList(list):
     """
-    List that returns an element which satisfies all conditions on call.
+    List that returns an element which satisfies all conditions.
 
     Examples
     --------
@@ -12,35 +12,37 @@ class DataList(list):
         name: str
         age: int
 
-    persons = DataList([Person("John", 26),
-                        Person("Smith", 22)])
+    persons = DataList(Person("John", 26),
+                       Person("Smith", 22))
 
     persons(name="John").age == 26  # True
     """
-
-    def __init__(self, iterable, *, default=None):
+    def __init__(self, iterable):
         """
         Parameters
         ----------
         iterable:
-            Iterable like list.
-        default:
-            Default value. The is returned if none of elements match your conditions.
+            Data for extraction.
         """
         super().__init__(iterable)
-        self.default = default
+        self._has_mapping_data: Optional[bool] = None
+        # Indicates the access destination.
+        # If True, (usually if dict)
+        # NO: element.attr
+        # YES!: element["attr"]
+        # If None, the destination is not decided yet.
 
-    def __call__(self, *checks: Callable, **attrs):
+    def __call__(self, *checks: Callable, **conditions):
         """Returns an element which satisfies all conditions by checks and attrs.
 
         Parameters
         ----------
         *checks: Callable
             if Callable(element):
-                the element can be returned.
-        **attrs:
+                extracts the element.
+        **conditions: {key : val}
             if element.key == val:
-                the element can be returned.
+                extracts the element.
 
         Examples
         --------
@@ -56,9 +58,9 @@ class DataList(list):
                        name = "John")
         """
         try:
-            return self._extract(*checks, **attrs).__next__()
+            return self._extract(*checks, **conditions).__next__()
         except StopIteration:
-            return self.default
+            return None
 
     def get(self, *args, **kwargs):
         """Alias of __call__"""
@@ -83,7 +85,7 @@ class DataList(list):
     def _extract(self, *checks, **attrs):
         for element in self:
             for attr, value in attrs.items():
-                if getattr(element, attr) != value:
+                if self._access(element, attr) != value:
                     break
             else:
                 for check in checks:
@@ -92,14 +94,25 @@ class DataList(list):
                 else:
                     yield element
 
-    def set_default(self, val):
-        """
-        Parameters
-        ----------
-        val:
-            Default value. The is returned if none of elements match your conditions.
-        """
-        self.default = val
+    def _access(self, element, attr):
+        if self._has_mapping_data is False:
+            return getattr(element, attr)
+        elif self._has_mapping_data:
+            return element[attr]
+        else:
+            try:
+                result = element[attr]
+            except TypeError:
+                try:
+                    result = getattr(element, attr)
+                except AttributeError:
+                    raise AttributeError(f"Failed to find attribute or mapped key. {attr} for {element}.")
+                else:
+                    self._has_mapping_data = False
+                    return result
+            else:
+                self._has_mapping_data = True
+                return result
 
     def __getattr__(self, attrs: str) -> "DataList":
         if not attrs.endswith("s"):
@@ -109,11 +122,17 @@ class DataList(list):
             return DataList([])
         return self.line_up(attr)
 
-    def line_up(self, attr: str):
-        has_attr = map(lambda element: hasattr(element, attr), self)
-        if all(has_attr):
-            return DataList([getattr(ele, attr) for ele in self])
+    def line_up(self, name: str):
+        is_accessible_list = map(lambda element: self._is_accessible_with(element, name), self)
+        if all(is_accessible_list):
+            return DataList([self._access(ele, name) for ele in self])
         else:
-            AttributeError(f"Elements without attribution: {attr} exist.")
+            AttributeError(f"Elements without attribution or key: {name} exist.")
 
+    def _is_accessible_with(self, element, destination_name):
+        try:
+            self._access(element, destination_name)
+        except (KeyError, AttributeError):
+            return False
+        return True
 

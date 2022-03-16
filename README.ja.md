@@ -1,24 +1,23 @@
-# datalist
+# picklist
 
-条件にあうデータを簡単に抽出できるリストです。
+つまむように簡単に要素を抽出できるリストです。
 
-こういったコードが、
+こんなコードを、
 ```python
-[person.age for person in person_list if person.name == "John"][0]
+[person for person in person_list if person.name == "John"][0]
 ```
 
-スッキリします。
+スッキリさせます。
 ```python
-person_list.get(name="John")
-# .getすら省略してもOK.
+person_list.pick(name="John")
 ```
 
 ## Example
 
-以下のようなデータがあるとして
-
+下記のようなデータがあるとして
 ```python
 from dataclasses import dataclass
+from picklist import PickList
 
 @dataclass
 class Person:
@@ -27,21 +26,19 @@ class Person:
 
 John = Person("John", 35)
 Smith = Person("Smith", 22)
+
+persons = PickList([John, Smith])
 ```
 
-nameが"John"のデータが欲しい場合は以下のように。
+nameが"John"の要素を抽出してみます。
 ```python
-from datalist import DataList
-
-persons = DataList([John, Smith])
+John = persons.pick(name="John")  
+# .pickすら省略してもOK
 ```
+簡単に欲しい要素が抽出できました。
+pickメソッドは任意のキーワード引数(key=value)を受け取り、要素.key==valueの全ての条件を満たす要素を1つ返します。
 
-```python
-# datalist
-John = persons.get(name="John")
-```
-簡単に欲しいデータが抽出できます。
-以下の内包表記やfor文のものと同価です。
+これは以下の内包表記やfor文のものと同価です。
 
 ```python
 # 内包表記
@@ -60,69 +57,70 @@ for person in persons:
         break
 ```
 
-データクラス以外も扱えます。
-辞書のようにobj["key"]でアクセスするもの、もしくは通常のclassのように属性(obj.attr)としてアクセスできるものであればOKです。
+例にあげたdataclass以外も要素として扱えます。
+辞書のようにelement["key"]でアクセスできるか、element.keyとして属性にアクセスできるものであればOKです。
+辞書の例を見てみましょう。
 
 ```python
 # 辞書
-John_dict = {"name":"John", "age": 35}
-Smith_dict = {"name":"Smith", "age":22}
+John_dict = {"name": "John", "age": 35}
+Smith_dict = {"name": "Smith", "age": 22}
 
-dlist = DataList([John_dict, Smith_dict])
-dlist.get(name="Smith")  # Smith_dict
-```
-
-位置引数に条件式を渡せば複雑な条件で抽出することもできます。
-条件式は１つの要素を受け取るcallableで、boolを返さなければいけません。
-
-```python
-@dataclass
-class Person:
-    name: str
-    age: int
-    country: str
-
-persons = DataList([Person("Abigail", 17, "America"),
-                    Person("Ai", 17, "Japan"),
-                    Person("Aaron", 35, "British"),
-                    Person("Smith", 22, "South Africa")])
-
-Ai = persons.get(
-    lambda person: person.name.startswith("A"),
-    age=17,
-    country="Japan")
+plist = PickList([John_dict, Smith_dict])
+plist.pick(name="Smith")  # == Smith_dict 返り値もdict
 ```
 
 ### get_all
-get_allメソッドは、条件に合う全てのデータを抽出しリストを返します。
+get_allメソッドは、条件に合う**全ての**要素を抽出し結果をPickListで返します。
 
 ```python
-persons = DataList([Person("Abigail", 35),
+persons = PickList([Person("Abigail", 35),
                     Person("John", 35),
                     Person("Smith", 22)])
 
 persons_aged_35 = persons.get_all(age=35)  
-# == [person for person in persons if person.age=35]
+# == PickList([person for person in persons if person.age==35])
 ```
 
-### Values of an attribute
+### get_values
 
-各データの"name"の値のリストは以下のように取得できます。
+各要素の"name"の値の一覧は以下のように取得できます。
 ```python
 names = persons.names
 # ["Abigail", "John", "Smith"]
-# persons.make_list_of("name") also ok
+# persons.get_values("name")でも同じ
 ```
 これは以下と同価です。
 
 ```python
 names = [person.name for person in persons]
 ```
-"name**s**"という属性は元はどこにもありません。"name"属性を各データが有していただけでした。
-DataListは"s"で終わる不明な属性でアクセスされた際、各データにその名前(s抜き)の属性がないか調べます。
-もしあれば、その属性の値をDataListで返します。 なければAttributeErrorがraiseされます。
+"name**s**"という属性は元々はどこにもなく、"name"属性をリスト内の各要素が有しているだけでした。
+PickListは"s"で終わる不明な属性にアクセスされた際、各要素にその属性(s抜き)があるか調べます。
+もしあれば、その値一覧をPickListで返します。なければAttributeErrorがraiseされます。
 
-この使い方を避けたい場合、make_list_ofメソッドでも同じことができます。
+"s"は複数形に由来していますが、英語の文法などは無視され、単純に"s"で終わるかどうかだけを見ています。
+不可算名詞や不規則変化などは考慮しないので、picklist.informationsや、plist.womansなどもありえます。
+
+この使い方を避けたい場合、get_valuesメソッドでも同じことができます。
+```python
+#これらは同価
+PickList.get_values("example")
+PickList.examples
+```
+
+### 複雑な条件
+位置引数に条件式を渡せば複雑な条件で抽出することもできます。
+条件式は要素を１つ受け取るcallableです。
+bool(Callable(各要素)) is Trueになる場合のみ抽出されます。
+
+```python
+Ai = persons.pick(
+    lambda person: 
+        person.name.startswith("A")
+        and person.weight > 45.0,
+    age=27, height=160)
+```
 
 ### 普通のList
-DataListは標準のlistを継承しています。appendやpopなども全て使用可能です。
+PickListは標準のlistを継承しています。各メソッドや演算子など、同様に使えます。

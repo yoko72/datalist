@@ -6,4 +6,3 @@ __author_email__ = 'yokoyamacode@gmail.com'
 __url__ = 'https://github.com/yoko72/datalist'
 
 from .datalist import *
-

@@ -1,5 +1,5 @@
 __copyright__ = 'Copyright (C) 2022 Toshiyuki Yokoyama'
-__version__ = '0.1'
+__version__ = '0.1.1'
 __license__ = 'MIT'
 __author__ = 'Toshiyuki Yokoyama'
 __author_email__ = 'yokoyamacode@gmail.com'

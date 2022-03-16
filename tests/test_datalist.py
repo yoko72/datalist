@@ -4,7 +4,7 @@ from dataclasses import dataclass, asdict
 
 
 class TestCase(unittest.TestCase):
-    def setUp(self) -> None:
+    def setUp(self):
         @dataclass
         class Person:
             name: str
@@ -12,10 +12,11 @@ class TestCase(unittest.TestCase):
             country: str
 
         self.sample_class = Person
-        self.sample_data = datalist.DataList([Person("Abigail", 17, "America"),
-                            Person("Ai", 17, "Japan"),
-                            Person("Aaron", 35, "British"),
-                            Person("Smith", 22, "South Africa")])
+        self.sample_data = datalist.DataList([
+            Person("Abigail", 17, "America"),
+            Person("Ai", 17, "Japan"),
+            Person("Aaron", 35, "British"),
+            Person("Smith", 22, "South Africa")])
         self.sample_dict = datalist.DataList([asdict(person) for person in self.sample_data])
 
     def test_get(self):
@@ -40,11 +41,11 @@ class TestCase(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.sample_dict.get(sex="male")
 
-    def test_lineup(self):
+    def test_make_list_of(self):
         expected = [17, 17, 35, 22]
-        self.assertEqual(expected, self.sample_data.line_up("age"))
+        self.assertEqual(expected, self.sample_data.make_list_of("age"))
         self.assertEqual(expected, self.sample_data.ages)
-        self.assertEqual(expected, self.sample_dict.line_up("age"))
+        self.assertEqual(expected, self.sample_dict.make_list_of("age"))
         self.assertEqual(expected, self.sample_dict.ages)
 
 

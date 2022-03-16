@@ -102,7 +102,7 @@ If datalist:
 
 ```python
 names = persons.names
-# persons.line_up("name") also works
+# persons.make_list_of("name") also works
 ```
 
 DataList DOESN'T have "names" attribute, but all elements have "name" attribute.

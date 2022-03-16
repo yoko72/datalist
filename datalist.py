@@ -120,9 +120,9 @@ class DataList(list):
         attr = attrs[:-1]
         if not self:
             return DataList([])
-        return self.line_up(attr)
+        return self.make_list_of(attr)
 
-    def line_up(self, name: str):
+    def make_list_of(self, name: str):
         is_accessible_list = map(lambda element: self._is_accessible_with(element, name), self)
         if all(is_accessible_list):
             return DataList([self._access(ele, name) for ele in self])
@@ -135,4 +135,3 @@ class DataList(list):
         except (KeyError, AttributeError):
             return False
         return True
-

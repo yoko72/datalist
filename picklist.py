@@ -77,9 +77,11 @@ class PickList(list):
         return PickList([ele for ele in self._extract(*checks, **attrs)])
 
     def _extract(self, *checks, **attrs):
+        access = self._access
+        items = attrs.items()
         for element in self:
-            for attr, value in attrs.items():
-                if self._access(element, attr) != value:
+            for attr, value in items:
+                if access(element, attr) != value:
                     break
             else:
                 for check in checks:

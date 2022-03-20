@@ -1,18 +1,24 @@
 # picklist
 
-Extracts element easily.
+Picklist is a user-friendly list to pick element with conditions.
 
+## Quick example
 ```python
 # normal way
 [person for person in person_list if person.name == "John"][0]
 
 # equivalent with picklist
-person_list(name="John")
+person_list.pick(name="John")  # easy!
+```
+
+## Install
+```
+$ python -m pip install git+https://github.com/yoko72/picklist
 ```
 
 ## Example
 
-If you have the following data:
+With following data:
 
 ```python
 from dataclasses import dataclass
@@ -29,20 +35,15 @@ Smith = Person("Smith", 22)
 persons = PickList([John, Smith])
 ```
 
-Let's pick an element with "John" value in "name" attribute.
+Let's pick an element whose value of "name" attribute is "John".
 
 ```python
-persons(name="John")  # == John
-# persons.get(name="John") also works same
+persons.pick(name="John")  # == John
+# Even .pick is omitted, it works same.
 ```
-This is equivalent to following ways.
-```python
-# comprehension
-try:
-    John = [person for person in persons if person.name == "John"][0]
-except IndexError:  # if list is empty:
-    John = None
-```
+The pick method accepts any keyword arguments(key=value), and returns the element which satisfies all element.key == value conditions.
+
+It's almost equivalent to following ways.
 
 ```python
 # for loop
@@ -52,66 +53,85 @@ for person in persons:
         John = person
         break
 ```
-Not only objects holding value with attr, but also dict is available.
+
+```python
+# comprehension
+try:
+    John = [person for person in persons if person.name == "John"][0]
+except IndexError:  # if list is empty:
+    John = None
+```
+
+Comprehension way differs a little from pick method and for loop. 
+It doesn't stop the process even after it finds the object.
+
+## Available data
+
+Not only objects holding value as attr, but also dictlike object is available.
 Let's see the example of dict.
 
+```python
+John_dict = {"name": "John", "age": 35}
+Smith_dict = {"name": "Smith", "age": 22}
 
+plist = PickList([John_dict, Smith_dict])
+plist.pick(name="Smith")  # is Smith_dict
+```
 
 
 
 ### get_all
-get_all() returns list of all elements satisfying the conditions.
+get_all() returns list of **all** elements satisfying the conditions as picklist.
 
 ```python
 persons = PickList([Person("Abigail", 35),
                     Person("John", 35),
                     Person("Smith", 22)])
 
-persons_aged_35 = persons.get_all(age=35)  # [John, Abigail] has 2 Person instances
+persons_aged_35 = persons.get_all(age=35)  
+# == PickList([person for person in persons if person.age==35])
 ```
 
 ### Values of an attribute
-If you want names of all persons:
+If you want names of all persons,
+```python
+names = persons.names
+# ["Abigail", "John", "Smith"]
+# persons.get_values("name") also works same.
+```
 
-if traditional way:
-
+It's equivalent with:
 ```python
 names = [person.name for person in persons]
 ```
 
-If picklist:
+Nothing has "names" attribute, but all elements have "name" attribute.
+If picklist is accessed with undefined attribute with "s" suffix, each element is checked if they have the attribute without "s" suffix.
+If they have, picklist returns the values of each element as PickList.
+If not, AttributeError is raised.
 
+This usage comes from the usage of multiple form in English, but it purely checks if it ends with "s" or not.
+Therefore, incorrect english words are possible like picklist.informations, plist.womans and so on.
+
+You can use get_values method if you don't like such usage, it works same.
+
+Followings are equivalent.
 ```python
-names = persons.names
-# persons.make_list_of("name") also works
+plist.get_values("example")
+plist.examples
 ```
 
-PickList DOESN'T have "names" attribute, but all elements have "name" attribute.
-To get all values of an attribute, access picklist with the attribute of elements + "s".
-
-
-
-In Complicated conditions:
+### In Complicated conditions:
+You can extract with complicated conditions by giving callable as positional argument.
+The callable must accept one argument, and the element is extracted only when bool(Callable(element)) is True.
 
 ```python
-@dataclass
-class Person:
-    name: str
-    age: int
-    country: str
-
-
-persons = PickList([Person("Abigail", 17, "America"),
-                    Person("Ai", 17, "Japan"),
-                    Person("Aaron", 35, "British"),
-                    Person("Smith", 22, "South Africa")])
-
-Ai = persons.pick(
-    lambda person: person.name.startswith("A"),
-    age=17,
-    country="Japan")
+example = persons.pick(
+    lambda person: 
+        person.name.startswith("A")
+        and person.weight > 45.0,
+    age=27, height=160)
 ```
 
-All positional arguments must be callable which accepts element and return bool.
-
-
+## Subclass of list
+Picklist inherits from standard class. Each method or operator for the list is available.

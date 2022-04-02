@@ -1,3 +1,4 @@
+(日本語🇯🇵)[https://github.com/yoko72/picklist/README.ja.md]
 # picklist
 
 Picklist is a user-friendly list to pick element with conditions.

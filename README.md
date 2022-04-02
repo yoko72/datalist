@@ -65,7 +65,7 @@ except IndexError:  # if list is empty:
 Comprehension way differs a little from pick method and for loop. 
 It doesn't stop the process even after it finds the object.
 
-## Available data
+## Dict as element
 
 Not only objects holding value as attr, but also dictlike object is available.
 Let's see the example of dict.
@@ -121,7 +121,7 @@ plist.get_values("example")
 plist.examples
 ```
 
-### In Complicated conditions:
+### Complicated conditions:
 You can extract with complicated conditions by giving callable as positional argument.
 The callable must accept one argument, and the element is extracted only when bool(Callable(element)) is True.
 

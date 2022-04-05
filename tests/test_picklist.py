@@ -1,5 +1,5 @@
 import unittest
-from picklist import PickList
+from src import PickList
 from dataclasses import dataclass, asdict
 from myutils.myutils import measure_time
 

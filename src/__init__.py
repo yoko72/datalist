@@ -5,4 +5,3 @@ __author__ = 'Toshiyuki Yokoyama'
 __author_email__ = 'yokoyamacode@gmail.com'
 __url__ = 'https://github.com/yoko72/picklist'
 
-from .picklist import *

@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable
 
 
 class PickList(list):
@@ -17,14 +17,6 @@ class PickList(list):
 
     persons(name="John").age == 26  # True
     """
-    def __init__(self, iterable):
-        """
-        Parameters
-        ----------
-        iterable:
-            Data for extraction.
-        """
-        super().__init__(iterable)
 
     def __call__(self, *checks: Callable, **conditions):
         """Returns an element which satisfies all conditions by checks and attrs.

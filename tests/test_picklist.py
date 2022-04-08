@@ -1,7 +1,8 @@
 import unittest
-from src import PickList
 from dataclasses import dataclass, asdict
-from myutils.myutils import measure_time
+
+from picklist import PickList
+from utils import measure_time
 
 
 class TestCase(unittest.TestCase):

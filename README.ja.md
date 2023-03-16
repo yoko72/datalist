@@ -21,14 +21,17 @@ python -m pip install git+https://github.com/yoko72/picklist
 ## Example
 
 下記のようなデータがあるとして
+
 ```python
 from dataclasses import dataclass
 from picklist import PickList
+
 
 @dataclass
 class Person:
     name: str
     age: int
+
 
 John = Person("John", 35)
 Smith = Person("Smith", 22)

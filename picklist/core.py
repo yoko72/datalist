@@ -1,6 +1,8 @@
 from typing import Callable
 
 
+_unique_default_value = object()
+
 class PickList(list):
     """
     Friendly list to pick data with conditions.
@@ -15,10 +17,11 @@ class PickList(list):
     persons = PickList(Person("John", 26),
                        Person("Smith", 22))
 
-    persons(name="John").age == 26  # True
+    persons.pick(name="John").age == 26  # True
+    persons.pop(age=22)  # Smith
     """
 
-    def __call__(self, *checks: Callable, **conditions):
+    def pick(self, *checks: Callable, **conditions):
         """Returns an element which satisfies all conditions by checks and attrs.
 
         Parameters
@@ -48,11 +51,15 @@ class PickList(list):
         except StopIteration:
             return None
 
-    def pick(self, *args, **kwargs):
-        """Alias of __call__"""
-        return self(*args, **kwargs)
+    def remove(self, __value=_unique_default_value, **kwargs):
+        if __value is _unique_default_value:
+            __value = self.pick(**kwargs)
+        super().remove(__value)
 
-    pick.__doc__ = pick.__doc__ + "\n" + __call__.__doc__
+    def pop(self, __value=_unique_default_value, **kwargs):
+        if __value is _unique_default_value:
+            __value = self.pick(**kwargs)
+        super().pop(__value)
 
     def get_all(self, *checks: Callable, **attrs) -> "PickList":
         """Returns ALL elements which satisfy all conditions by checks and attrs.
@@ -71,6 +78,7 @@ class PickList(list):
     def _extract(self, *checks, **attrs):
         access = self._access
         items = attrs.items()
+
         for element in self:
             for attr, value in items:
                 if access(element, attr) != value:
@@ -98,6 +106,11 @@ class PickList(list):
             return result
 
     def __getattr__(self, attrs: str) -> "PickList":
+        """
+        persons.ages = [22, 26]
+        Alias of [person.age for person in persons]
+
+        """
         if not attrs.endswith("s"):
             raise AttributeError
         attr = attrs[:-1]
@@ -106,11 +119,19 @@ class PickList(list):
         return self.get_values(attr)
 
     def get_values(self, name: str):
+        """
+        persons_pick_list.get_values(age)
+        is almost alias of
+        [person.age for person in persons_pick_list]
+
+        This can be replaced by
+        persons_pick_list.ages.
+        """
         is_accessible_list = map(lambda element: self._is_accessible_with(element, name), self)
         if all(is_accessible_list):
             return PickList([self._access(ele, name) for ele in self])
         else:
-            AttributeError(f"Elements without attribution or key: {name} exist.")
+            AttributeError(f"Elements without attribution: {name} exist.")
 
     def _is_accessible_with(self, element, destination_name):
         try:

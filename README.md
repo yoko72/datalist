@@ -25,10 +25,12 @@ With following data:
 from dataclasses import dataclass
 from picklist import PickList
 
+
 @dataclass
 class Person:
     name: str
     age: int
+
 
 John = Person("John", 35)
 Smith = Person("Smith", 22)
